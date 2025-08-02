@@ -10,11 +10,6 @@ They are build from the [daily-builds branch](https://github.com/wellenvogel/avn
 
 Releases are available [here](https://www.wellenvogel.net/software/avnav/downloads/release/fr).
 
-Got it! I’ll analyze the AVNav source code and create a developer-friendly README in the same detailed and structured style as your NautiPi README. The focus will be on making it easier for developers—especially new contributors—to understand and navigate the codebase.
-
-I’ll let you know as soon as the README draft is ready.
-
-
 # 🧭 **AVNav – Open-Source Chartplotter & Boat Data Server with Web App**
 
 ---
