@@ -12,20 +12,6 @@ Releases are available [here](https://www.wellenvogel.net/software/avnav/downloa
 
 # 🧭 **AVNav – Open-Source Chartplotter & Boat Data Server with Web App**
 
----
-
-## What is AVNav and why is it important?
-
-**AVNav** is a free, open-source navigation software designed for recreational boaters to run on small computers like the Raspberry Pi, as well as on PCs and Android devices. Like other chartplotter applications, AVNav displays nautical charts and marks the boat’s GPS position, but it goes further – it acts as a **“navigation server”** that collects and multiplexes data from various onboard sources (GPS, AIS, wind, depth, etc.) and serves a full-featured web application for charting and instrumentation. This server–client design means you can access your boat’s navigation dashboard from **any device with a modern web browser**, be it a cockpit tablet, a phone, or a laptop, all connected via Wi-Fi. AVNav is optimized for touchscreens and allows customizable layouts to fit different screen sizes and user preferences.
-
-* **For Users (Boaters):** AVNav makes it easy to set up a **modern chartplotter and instrument panel** without proprietary hardware. Install it on a Raspberry Pi or other computer, connect your NMEA0183 sensors (GPS, AIS, log, depth, wind, etc.) via USB, serial, Bluetooth, or network, and AVNav will automatically detect them and start logging data. The system can create its own onboard Wi-Fi hotspot, so crew devices can connect to view live charts, GPS position, AIS targets, and instrument readouts in any web browser – no additional apps required. It supports **waypoints, routes, tracks, anchor watch alarms, AIS collision warnings**, and more out of the box. Because AVNav runs headless (no full desktop needed), it’s lightweight in power usage and ideal for 24/7 operation on a boat’s batteries.
-
-* **For Developers:** AVNav provides an open, modular platform to build upon. Its backend is written in Python for easy extensibility, and it features a plugin system that lets you add new data sources or outputs (for example, integrating NMEA2000 data via a **canboat** plugin for AIS/transducer data). The frontend is a modern JavaScript (React) web application, so developers can create custom UI components or tweak the styling (e.g. custom CSS for new instrument displays). The project’s code is well-organized into logical components, and clear documentation (both in-code and in the `docs/` folder) helps newcomers navigate the architecture. AVNav’s goal is to be **easy to modify and integrate** – whether you want to add a new sensor input, support a new chart format, or enhance the user interface, the framework is in place to do so without having to rewrite core systems.
-
-**AVNav** is an important piece of the open-source boating ecosystem because it enables a powerful yet **independent navigation setup**. Boaters are not locked into proprietary chartplotters – with AVNav they can use affordable hardware and open charts, while preserving flexibility to customize and extend. By bridging the gap between traditional **desktop plotter apps** and modern **web-based interfaces**, AVNav offers the best of both: a full-featured navigation system that you can access from anywhere on board (or even remotely), with the transparency and adaptability of open-source software. This makes onboard digitalization more accessible, affordable, and community-driven.
-
----
-
 ## 💾 Basic Project Overview
 
 **AVNav’s Workflow and Features:** After installing AVNav (e.g. on a Raspberry Pi using the provided image or on Windows via the installer), the software runs as a background service (the “nav server”). In a typical setup, the Raspberry Pi creates a Wi-Fi hotspot on the boat, allowing tablets or laptops to connect. Users then simply open a browser to the AVNav web UI. A setup like this enables multiple displays – for instance, one tablet can show the chart plot with AIS targets, while another shows a custom instrument dashboard – all powered by the same AVNav server. AVNav can also serve as a pure **NMEA data hub**: it takes NMEA 0183 inputs (from serial, TCP/UDP, Bluetooth, etc.) and redistributes them to other apps or devices as needed (acting as a **multiplexer and Wi-Fi gateway**). In fact, you can use third-party navigation software (like OpenCPN or iNavX) by connecting them to AVNav’s NMEA output streams, while AVNav simultaneously feeds its own web interface – giving you flexibility in how you use the data.
@@ -178,55 +164,6 @@ In short, AVNav is not a closed system – it’s built to be adapted. The combi
 
 ---
 
-## 🔒 Security and Deployment
-
-**Security:** By default, AVNav does not enforce login authentication for the web interface – it’s assumed to be running on a closed network (such as your boat’s local Wi-Fi) or behind a firewall. This makes it convenient to access while on board, but it’s recommended **not to expose AVNav directly to the internet** without additional protections. If needed, one could implement basic HTTP auth or run AVNav behind a secure proxy for remote access. The software does run as a normal user (not root), and on Linux the included setup scripts configure necessary permissions (e.g., for accessing serial ports) via udev rules rather than requiring root privileges【15†】. AVNav’s file access is mostly contained to its own application and user data directories, and it doesn’t open any external ports besides those configured for its web and NMEA services. Always keep your system up to date and use network best practices (like WPA2 for the Wi-Fi hotspot, strong system passwords, etc.) when deploying AVNav on a Raspberry Pi or similar.
-
-**Operating System Integration:** Installation packages are provided for various platforms to simplify deployment:
-
-* On **Raspberry Pi (Raspbian)**: You can use a pre-built SD card image or install via a Debian package/script. The installation will set up AVNav as a systemd service (`avnav.service`), so it starts on boot and restarts automatically if it crashes. It also can install optional services like `avnav-iptables` (for network configuration) and `avnav-ssh` (to toggle SSH) as found in the `raspberry/` folder【15†】.
-* On **Windows**: A setup program is available which installs AVNav and registers it as a Windows service (so it runs in background). There are PowerShell scripts and an NSIS installer script in the `windows/` directory handling these details【24†】. The Windows version is primarily intended for chart conversion and testing, but it can run the full server and GUI if desired.
-* On **Linux (PC)** or **macOS**: You can run AVNav from source or potentially use packages (for Linux, .deb packages might be offered). On macOS, an app bundle is provided for the chart converter utility (as seen in `osx/AvChartConvert.app`), and the Python server can be run on macOS as well (though there is no launch agent by default in the repo). In all cases, Python 3 is required, and the required Python libraries (like Pillow, flask (if any), etc.) are typically installed via the installer or manually via `pip` as documented.
-* On **Android**: Simply install the AVNav app from the Google Play Store (or build it from the `android/` source). The Android app includes all needed components and will on first run ask for permissions to use location, USB, etc., as appropriate.
-
-**Updates:** Being an open-source project, AVNav updates are released periodically. Users can update by installing the new version (on RPi, that might mean running an update script or replacing the Docker image if using one; on Windows, running a new installer; on Android, via Play Store updates). The project does not currently have an over-the-air self-update mechanism within the app (unlike some systems that have a “update” button); you update by upgrading the software through the usual means. It’s wise to keep an eye on the project’s GitHub or wellenvogel.net page for release notes and update instructions.
-
-**Reliability:** AVNav is designed to be **robust for continuous use**. It handles disconnecting/reconnecting devices gracefully (e.g., if a USB GPS is unplugged, it won’t crash; it will wait and auto-detect when a new device is plugged in). The use of a simple file-based configuration and avoidance of external database dependencies means there are few points of failure. The server can also run entirely offline (no internet needed) which is crucial offshore. All charts and data can be pre-loaded, and even the documentation is included in the `docs/` directory or accessible on the device, so one doesn’t have to rely on cloud services for any core function.
-
----
-
-## 📜 Installation and Initial Setup
-
-*Getting started with AVNav is straightforward.* For Raspberry Pi users, the easiest path is to download the ready-to-go SD card image from the official website. After writing the image to an SD card and booting the Pi, AVNav will launch automatically – the Pi will create a Wi-Fi hotspot (SSID and password as documented on the site) and you can connect with your laptop/tablet to access the interface. The default address for the web interface is usually **[http://192.168.2.1:8092](http://192.168.2.1:8092)** (or a similar IP, depending on network config). You should see the AVNav homepage with charts (initially a world map or a demo chart) and menus for the various functions.
-
-If you prefer to install on an existing Raspberry Pi OS or a different Linux device, you can use the provided installer script or Debian package. Typically it’s as simple as:
-
-```bash
-# On Raspbian or Debian-based OS
-sudo apt-get install avnav                 # (if a deb repo is provided)
-# OR, if building from source:
-git clone https://github.com/wellenvogel/avnav.git
-cd avnav
-sudo ./install.sh
-```
-
-*(Refer to the latest instructions on the official site, as package names or install methods may evolve.)*
-
-For **Windows**, download the installer from the official site and run it – it will install AVNav and create a shortcut to start/stop the server. Once running, a tray icon might indicate the service status, and you can navigate to `http://localhost:8092` (or whichever port is configured) in your browser to use AVNav.
-
-For **Android**, simply install the “AVNav” app from the Play Store. Upon opening, the app runs its internal server and immediately loads the AVNav interface. You can use the Android’s internal GPS, but for better accuracy or AIS, you might connect the device to external NMEA sources (Bluetooth or Wi-Fi NMEA feed; the app supports receiving NMEA over network or USB serial via an OTG cable). The Android app can also act as a server for other devices: if enabled as a “master”, it can accept Wi-Fi connections from other devices which then only need to use a browser to view the same nav data.
-
-**Initial configuration:** In most cases, AVNav will “just work” after installation. However, a few things to check:
-
-* **Charts:** You’ll want to load your own charts. If you have raster charts (BSB/KAP, NV Atlas, etc.), use the AVNav chart converter on a PC or directly place the chart files in the Pi’s `/home/pi/avnav/charts` directory (or use the web UI’s chart import if available). Converted chart sets (GEMF or MBTiles) should be placed in `charts/` and listed in the `avnav_server.xml` config or automatically picked up. The web UI will list available charts and allow you to select them. For oeSENC vector charts, follow the instructions on purchasing and installing the license (these go into a specific directory with a permit file).
-* **GPS and Instruments:** Ensure your GPS or other sensors are connected. If using a USB GPS dongle, plugging it in should be enough – AVNav will find the serial port. You can verify data reception in the web UI (check the “GPS” status or see if your position shows up). If using a multiplexed source (like SignalK or another NMEA Wi-Fi source), configure AVNav to read from the appropriate TCP/UDP port via the config file or UI.
-* **Time and System Settings:** On a Raspberry Pi, if AVNav gets a valid time from GPS, it will set the system clock (helpful if you have no internet time sync). You might still want to set your time zone on the Pi manually. Also consider enabling any security (change default passwords on Pi, etc.) as needed.
-* **Mobile Use:** If you plan to use an external device primarily (say, an iPad in browser), you might create a bookmark or even an icon for the AVNav web app. The interface is designed to work as a progressive web app (PWA) so some devices may allow “Add to Home Screen” which then makes AVNav act like a full-screen app.
-
-For more detailed installation and setup guides, refer to the official documentation, which includes step-by-step instructions and troubleshooting tips. There is also a **Quickstart** guide and an active user forum (links available on the project homepage) where you can seek help if you encounter issues.
-
----
-
 ## 📖 Documentation and Community
 
 The AVNav project provides a wealth of **documentation** to help both users and developers. In the repository’s `docs/` folder you will find various manuals and notes (some in Markdown, some in PDF form). Notably, the official website hosts an extensive **User Manual** (available as HTML and PDF) that covers everything from installation to advanced usage. If you’re new to AVNav, reading the “Navigation in the Browser” introduction and the “Overview” sections on the site is highly recommended, as they give real-world context on how to use the system effectively. There are also YouTube videos (in German) and presentation slides linked on the website for visual learners.
@@ -238,26 +175,4 @@ The AVNav **community** is active and friendly. The project’s GitHub page is t
 Being open-source (under a permissive license similar to MIT), AVNav welcomes contributions. Whether it’s improving this README, adding a new translation, or coding a new feature, contributors can make a positive impact. The maintainer, Andreas “wellenvogel” Vogel, has provided clear guidance in the docs and is known to engage with users for feedback. As a developer approaching this project, you’ll find that improving AVNav not only benefits your own boating setup but also the wider community of open-source sailing tech enthusiasts.
 
 ---
-
-## 🌐 Positioning in the Open-Source Boating Ecosystem
-
-It’s helpful to understand where AVNav stands in relation to other marine navigation solutions:
-
-| **Project**         | **Focus & Type**                                    | **User Interface**                                     | **Integration**                                                            |
-| ------------------- | --------------------------------------------------- | ------------------------------------------------------ | -------------------------------------------------------------------------- |
-| **AVNav**           | Web-based nav software (chartplotter + data server) | Browser UI (React app; touch-optimized)                | NMEA 0183 in/out; some Signal K support; plugin extensible                 |
-| **OpenCPN**         | Native chartplotter application                     | Desktop UI (Qt app for Windows/Linux/Mac; Android app) | NMEA 0183 input; plugins for extras (no built-in web interface)            |
-| **OpenPlotter**     | Complete Raspberry Pi OS distro for boats           | Desktop GUI + background services                      | Integrates Signal K, OpenCPN, etc., out-of-the-box; heavy but feature-rich |
-| **Bareboat/BBN OS** | RPi/Linux distro with marine apps                   | Desktop GUI (touchscreen friendly)                     | Includes OpenCPN, Signal K, and other tools pre-installed                  |
-| **Signal K**        | Marine data server (focused on NMEA2000)            | Web dashboards (Angular/React based, via plugins)      | Great for data logging and sharing; requires chart front-ends for plotting |
-
-AVNav distinguishes itself by being *lightweight* and **headless**: it doesn’t require a full X11 desktop or monitor on the Raspberry Pi – everything can be done via web browser. Unlike **OpenCPN**, which is a powerful chartplotter but traditionally runs on a single device with a directly attached screen, AVNav is designed for a distributed experience (data server + multiple remote displays). And while OpenCPN relies on plugins for certain integrations, it doesn’t natively serve a web UI or act as a network hub in the same way (though there are bridging plugins).
-
-Compared to **OpenPlotter** or **BBN OS**, which are full operating system images bundling many components (Signal K server, OpenCPN, Node-RED, etc.), AVNav provides a more focused solution. It specifically targets the navigation and instrument display needs, using modern web tech, and avoids the overhead of a full desktop environment or a slew of services you might not use. This makes AVNav an attractive option for those who want a DIY nav system but don’t need the complexity of a complete marine OS. In fact, AVNav can complement those systems: for instance, **OpenPlotter 2** includes an AVNav option, allowing users to choose AVNav’s web UI as their chartplotter while OpenPlotter handles other tasks like sensor integrations via Signal K.
-
-In the realm of **Signal K**, AVNav can be seen as a simpler alternative if your setup is mostly NMEA 0183 and you want an all-in-one solution. Signal K (with something like the Instrument Panel or WilhelmSK apps) is excellent for N2K-heavy environments and for cloud connectivity, but it may require assembling various pieces. AVNav gives you a lot in one package – chartplotter, data server, and web dashboards – which is compelling for many users. Ultimately, the marine open-source ecosystem is rich, and AVNav fills the niche of a ready-to-run **web chartplotter** that can run on modest hardware and be used by non-technical sailors with relative ease.
-
----
-
-AVNav’s continued development and usage underscore the power of open-source collaboration in niche areas like marine electronics. By sharing this project and improving resources like this README, we lower the barrier for the next sailor-developer to climb aboard and contribute. Happy sailing, and happy coding with AVNav!
 
